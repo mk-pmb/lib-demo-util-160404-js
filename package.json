@@ -1,0 +1,27 @@
+{ "name": "lib-demo-util-160404",
+  "version": "0.0.4",
+  "description": "Helps me write testable documentation.",
+  "keywords": [],
+
+  "author": "M.K. (https://github.com/mk-pmb)",
+  "homepage": "https://github.com/mk-pmb/lib-demo-util-160404-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mk-pmb/lib-demo-util-160404-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mk-pmb/lib-demo-util-160404-js/issues"
+  },
+
+  "private": false, "license": "ISC",
+
+  "main": "lib_demo.js",
+  "bin": { "demo-util-160404-test-demos": "test/test-demos.sh" },
+  "scripts": { "test": "demo-util-160404-test-demos" },
+  "directories": {
+    "doc": "doc",
+    "test": "test"
+  },
+
+  "npm vs. BOM = Unexpected token": "-*- coding: UTF-8 -*-"
+}
