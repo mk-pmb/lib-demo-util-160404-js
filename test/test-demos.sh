@@ -119,14 +119,14 @@ function check_demo () {
   local DEMO_OUTPUT="$(nodejs ./"$DEMO_BFN.js" 2>&1; echo :)"
   [ -n "${DEMO_OUTPUT%:}" ] || return 2$(
     echo $'\r'"! $DEMO_NICK: demo produced no output at all." >&2)
-  DEMO_OUTPUT="$(echo -n "${DEMO_OUTPUT%:}" | failhint 'transform output' \
-    lang_c sed -re "$EXPECTED"; echo :)"
+  DEMO_OUTPUT="$(failhint 'transform output' lang_c sed -rf <(echo "$EXPECTED"
+    ) -- <(echo -n "${DEMO_OUTPUT%:}"); echo :)"
   DEMO_OUTPUT="${DEMO_OUTPUT%:}"
   [ -n "$DEMO_OUTPUT" ] || return 2$(
     echo $'\r'"! $DEMO_NICK: failed to transform the output." >&2)
   local OUTPUT_DIFF="$DEMO_BFN".out.diff
-  <<<"${DEMO_OUTPUT%$'\n'}" lang_c diff -sU "${#EXPECTED}00" \
-    --label "$DEMO_NICK.expect" <(<<<"$EXPECTED" sed -nre 's~^#=~~p') \
+  <<<"${DEMO_OUTPUT%$'\n'}" lang_c diff -sU "9${#EXPECTED}00" \
+    --label "$DEMO_NICK.expect" <(<<<"$EXPECTED" lang_c sed -nre 's~^#=~~p') \
     --label "$DEMO_NICK.output" /dev/stdin \
     >"$OUTPUT_DIFF"
   local DIFF_RV=$?
@@ -135,27 +135,27 @@ function check_demo () {
     return 0
   fi
   echo -n $'\r'"! $DEMO_NICK: "
-  diffstat ${CFG[use-color]:+-C} -f 4 -- "$OUTPUT_DIFF" | sed -nre '
-    s~^.*\|\s*~\t~p'
+  diffstat ${CFG[use-color]:+-C} -f 4 -- "$OUTPUT_DIFF" \
+    | lang_c sed -nre 's~^.*\|\s*~\t~p'
   local GRP_SEP='…'
   [ -n "${CFG[use-color]}" ] && GRP_SEP='\x1b[90m'"$GRP_SEP"'\x1b[0m'
   GRP_SEP='s~^-{2}$~     '"$GRP_SEP~"
   diff_add_old_lnums "$OUTPUT_DIFF" | lang_c grep -C "${CFG[diff-context]%\
-    }" -Pe '^[\s0-9]*(\x1b\[[0-9;]*m|)[\+\-]' | sed -re "$GRP_SEP"
+    }" -Pe '^[\s0-9]*(\x1b\[[0-9;]*m|)[\+\-]' | lang_c sed -re "$GRP_SEP"
   return 3
 }
 
 
 function diff_add_old_lnums () {
   local COLORIZE=( cat )
-  [ -n "${CFG[use-color]}" ] && COLORIZE=( sed -re '
+  [ -n "${CFG[use-color]}" ] && COLORIZE=( lang_c sed -re '
     s~^( *)([0-9+]+)\t([:|+-])~\1\x1b[90m\2\x1b[0m\t\x1b[0\a\3~
     s!\a\-!;91&!
     s!\a\+!;94&!
     s!(;[0-9;]+|)\a(.)!\1m\2\x1b[0\1m!
     s~$~\x1b[0m~
     ' )
-  sed -nre '
+  lang_c sed -nre '
     : read_all
     $!{N;b read_all}
     s~^((\-{3}|\+{3})[^\n]*\n){2}~~
@@ -164,7 +164,7 @@ function diff_add_old_lnums () {
     s~(^|\n)(\+)~\r\2~g
     s~(^|\n) ~\1|~g
     s~^([^\r])~\n&~
-    p' -- "$@" | nl -ba --starting-line-num=0 | sed -re '
+    p' -- "$@" | nl -ba --starting-line-num=0 | lang_c sed -re '
     s~\r~\n     +\t~g
     1{s~^[0-9 ]+\t(\n|$)~~;/^$/d}
     ' | "${COLORIZE[@]}"
@@ -172,9 +172,10 @@ function diff_add_old_lnums () {
 
 
 function sed_file () {
-  local SED_FN="$1.sed"; shift
-  lang_c sed -rf "$SELFPATH/$SED_FN" "$@" && return 0
-  echo "W: ^-- $SED_FN failed."
+  local SED_BFN="$1"; shift
+  local SED_FN="$SELFPATH/$SED_BFN.sed"
+  lang_c sed -rf "$SED_FN" "$@" && return 0
+  echo "W: ^-- $SED_BFN failed." >&2
   return 2
 }
 

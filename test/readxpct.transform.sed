@@ -4,3 +4,4 @@ s~^\s*([0-9]+)\s\a=\s*"([^"]*)"$~#=\2~
 s~^\s*([0-9]+)\s\a=\s*'([^']*)'$~#=\2~
 s~^#=\a(0)@([0-9]+)\a~\2s![+-]?[0-9]+!0!g\n#=~
 s~^\s*([0-9]+)\s\a…$~\1s!^.*$![… ignore output line #\1 …]!\n#=[… ignore output line #\1 …]~
+s~^\s*([0-9]+)\s\a~#=? outln#\1: unsupported expectation format: ~

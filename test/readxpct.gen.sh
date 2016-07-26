@@ -52,6 +52,7 @@ function readexp_gen () {
   write_sed_file transform "
     $EXACT_LINE_QUOTES
     $ANY_ONE_LINE
+    s~{lnum}~#=? outln#\1: unsupported expectation format: ~
     " '
     s~\{lnum\}~^\\s*([0-9]+)\\s\\a~
     ' || return $?
