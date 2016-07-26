@@ -271,6 +271,7 @@ function LibDemoUtil160404(D) {
       err = err.match(exp.want);
       if (err) {
         exp.fail = false;
+        exp.rsltDescr = '(error) […]';
         exp.okHint = D.ent.rarr + ' ' + err[0];
       } else {
         exp.fail = D.ent.rarrWithStroke + ' ' + String(exp.want);
