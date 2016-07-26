@@ -17,9 +17,9 @@ D.expect('===', 'hel');
   //= '≠ (string) "hel"'
   //= "@ Object.<anonymous> (<usage demo>:15:3)"
   //= ""
-D.expect('fails=', 1);      //= `+ expect.failCnt = 1`
-D.result = D.expect.resetFailCnt();
-D.expect('fails=', 0);      //= `+ expect.failCnt = 0`
+D.expect('fails=', 1);        //= `+ expect.failCnt = 1`
+D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
+D.expect('fails=', 0);        //= `+ expect.failCnt = 0`
 
 D.chap('Data containers:');
 D.result = hi.split('');
@@ -41,16 +41,23 @@ D.expect('type', 'number');       //…
 D.chap('Synchronous runtime errors:');
 D.catch(function ohNoez() { throw new Error(hi); });
 D.expect('error', hi);            //= `+ (error) "hello"`
-D.expect('error', /[a-z]{2}$/);   //= `+ (error) "hello" → lo`
+D.expect('error', /[a-z]{2}$/);   //= `+ (error) … → lo`
 
 D.chap('Custom assertions:');
 D.result = 42;
-D.expect((D.result > 0), 'positive');   //= `+ (number) 42 ⇒ positive`
 D.expect((D.result < 0), 'negative');
   //= `! (number) 42`
   //= `⇏ negative`
-  //= `@ Object.<anonymous> (<usage demo>:49:3)`
+  //= `@ Object.<anonymous> (<usage demo>:48:3)`
   //= ``
+D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
+D.expect((D.result > 0), 'positive');   //= `+ (number) 42 ⇒ positive`
+
+D.chap('Output annotations in simple comment lines are ignored:');
+// D.chap('ignored chapter');      //= `? not-ignored chapter`
+D.result = 'ignored expect';
+// D.expect('===', 'whatever');    //= `? not-ignored expect`
+// D.annot('ignored annotation');  //= `? not-ignored annotation`
 
 
 
@@ -61,4 +68,4 @@ D.expect((D.result < 0), 'negative');
 
 
 
-// D.ok(module);     //= "+OK all usage tests passed."
+D.ok(module);     //= "+OK all usage tests passed."

@@ -37,6 +37,7 @@ function LibDemoUtil160404(D) {
       quoteFunc = null;
     }
     if (!(quoteFunc instanceof Function)) { quoteFunc = String; }
+    if (p === module.filename) { return quoteFunc(D.toString()); }
     tmp = D.hrPath.fileAliases[p];
     if ((typeof tmp) === 'string') { return quoteFunc(tmp); }
     if ((!startEllip) && (startEllip !== '')) { startEllip = '/…'; }
@@ -74,22 +75,27 @@ function LibDemoUtil160404(D) {
   D.ok = function (mod) {
     var ok = true;
     if (D.expect.failCnt !== 0) { ok = false; }
-    if (mod === process) { return ok; }
+    if (mod === process) {
+      if (ok || D.ok.hadFailMsg) { return ok; }
+      mod = null;
+    }
     if (mod && mod.filename) {
       mod = pathLib.basename(String(mod.filename), '.js');
     }
-    if (!mod) { mod = '??module??'; }
+    if (!mod) { mod = '<no module>'; }
     if (ok) {
       console.log('+OK all ' + mod + ' tests passed.');
     } else {
       console.error('-ERR some ' + mod + ' tests failed.');
+      D.ok.hadFailMsg = true;
     }
     return ok;
   };
 
-  process.on('exit', function libDemo_verifyOnExit() {
+  D.verifyOnExit = function libDemo_verifyOnExit() {
     if (!D.ok(process)) { process.exit(D.exitCodeTestsFailed); }
-  });
+  };
+  process.on('exit', D.verifyOnExit);
 
 
   D.typeOf = function (x) {
@@ -187,6 +193,20 @@ function LibDemoUtil160404(D) {
       exp.rslt = D.expect.failCnt;
       exp.rsltDescr = 'expect.failCnt = ' + String(exp.rslt);
       break;
+    case 'reset_fails':
+      exp.rslt = D.expect.failCnt;
+      exp.rsltDescr = 'expect.failCnt = ' + String(exp.rslt);
+      if (exp.want === true) {
+        exp.crit = 'type';
+        exp.want = 'number';
+      } else {
+        exp.crit = '===';
+        if (exp.rslt === exp.want) {
+          D.expect.failCnt = 0;
+          exp.rsltDescr += ', reset.';
+        }
+      }
+      break;
     }
     switch (exp.crit) {
     case 'type':
@@ -234,12 +254,6 @@ function LibDemoUtil160404(D) {
   D.expect.verbose = false;
   D.expect.failCnt = 0;
 
-  D.expect.resetFailCnt = function () {
-    var oldFails = D.expect.failCnt;
-    D.expect.failCnt = 0;
-    return oldFails;
-  };
-
   D.expect.chkIsin = function (exp, isin, grp) {
     grp = ' {' + (grp || exp.want) + '}';
     if (isin) {
@@ -271,7 +285,7 @@ function LibDemoUtil160404(D) {
       err = err.match(exp.want);
       if (err) {
         exp.fail = false;
-        exp.rsltDescr = '(error) […]';
+        exp.rsltDescr = '(error) …';
         exp.okHint = D.ent.rarr + ' ' + err[0];
       } else {
         exp.fail = D.ent.rarrWithStroke + ' ' + String(exp.want);
