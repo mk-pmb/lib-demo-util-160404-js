@@ -17,14 +17,17 @@ function LibDemoUtil160404(D) {
     '..', '..', '..'));
 
   D.ent = {
+    amp: '&',
     downwardsZigzagArrow: '\u21af',
     isin: '\u2208',
+    larr: '\u2190',
+    lArr: '\u21D0',
     ne: '\u2260',
     notin: '\u2209',
     rarr: '\u2192',
-    Rarr: '\u21d2',
+    rArr: '\u21d2',
     rarrWithStroke: '\u219b',
-    RarrWithStroke: '\u21cf',
+    rArrWithStroke: '\u21cf',
   };
 
   D.chap = function (title) { console.log('\n=== ' + title + ' ==='); };
@@ -252,10 +255,10 @@ function LibDemoUtil160404(D) {
       break;
     case true:
       exp.fail = false;
-      exp.okHint = D.ent.Rarr + ' ' + exp.want;
+      exp.okHint = D.ent.rArr + ' ' + exp.want;
       break;
     case false:
-      exp.fail = D.ent.RarrWithStroke + ' ' + exp.want;
+      exp.fail = D.ent.rArrWithStroke + ' ' + exp.want;
       break;
     case Error:
     case 'error':
