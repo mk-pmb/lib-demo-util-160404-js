@@ -43,14 +43,16 @@ function readexp_gen () {
     '"$EXACT_LINE_QUOTES
     ${EXACT_LINE_QUOTES//$GRAV/$QUOT}
     ${EXACT_LINE_QUOTES//$GRAV/$APOS}
-    "'
-    s~^#=\a(0)@([0-9]+)\a~\2s![+-]?[0-9]+!0!g\n#=~
-    '
+    "
+  local ALL_NUMBERS_TO_ZERO='
+    s~^#=\a(0)@([0-9]+)\a~\2s![+-]?([0-9]*\\.|)[0-9]+'$(
+    )'(|[Ee][+-]?[0-9]+)!0!g\n#=~'
   local ANY_ONE_LINE='s~{lnum}…$~\1s!^.*$!§!\n#=§~'
   ANY_ONE_LINE="${ANY_ONE_LINE//§/[… ignore output line #\\1 …]}"
 
   write_sed_file transform "
     $EXACT_LINE_QUOTES
+    $ALL_NUMBERS_TO_ZERO
     $ANY_ONE_LINE
     s~{lnum}~#=? outln#\1: unsupported expectation format: ~
     " '

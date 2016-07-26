@@ -36,9 +36,20 @@ D.expect('type', 'function');
   //= `+ function noop() { return; } ∈ {function}`
 
 D.result = process.pid;
-// ignore a line:
+// when testing, ignore a line:
 D.expect('type', 'number');       //…
+// when testing, for one line, replace all numbers with zero:
 D.expect('type', 'number');       //=0 `+ (number) 0 ∈ {number}`
+
+D.result = 'ints -> zero: -2 -1 -0 | 0 | +0 +1 +2 | 1 2 345 6789';
+D.expect('type', 'string');
+  //=0 `+ (string) "ints -> zero: 0 0 0 | 0 | 0 0 0 | 0 0 0 0" ∈ {string}`
+D.result = 'floats -> zero: -2.2 -1.1 -0.5 -0.0 | 0.000 | +0.5 +1.1 +2.2';
+D.expect('type', 'string');
+  //=0 `+ (string) "floats -> zero: 0 0 0 0 | 0 | 0 0 0" ∈ {string}`
+D.result = 'exp nums -> zero: -2.2e-2 -1.1E-1 -0e0 | 0.0E0 | 1.1e+1 +2.2e2';
+D.expect('type', 'string');
+  //=0 `+ (string) "exp nums -> zero: 0 0 0 | 0 | 0 0" ∈ {string}`
 
 D.chap('RegExp matching:');
 D.result = '404 Not Found';
@@ -61,7 +72,6 @@ D.expect((D.result < 0), 'negative');
   //= `! (number) 42`
   //= `⇏ negative`
   //=0 `@ Object.<anonymous> (<usage demo>:0:0)`
-  // ^-- when testing this line, treat all numbers as 0.
   //= ``
 D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
 D.expect((D.result > 0), 'positive');   //= `+ (number) 42 ⇒ positive`
