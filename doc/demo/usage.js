@@ -8,6 +8,7 @@ D.hrPath.fileAliases[module.filename] = '<usage demo>';
 
 D.result =      hi.substr(0, 4);
 D.expect('===', 'hell');    //= `+ (string) "hell"`
+D.expect('strlen', 4);      //= `+ (strlen) 4`
 D.expect('!==', 'help');    //= `+ (string) "hell" ≠ help`
 D.expect('fails=', 0);      //= `+ expect.failCnt = 0`
 
@@ -15,7 +16,7 @@ D.chap('Expect violation of an expectation:');
 D.expect('===', 'hel');
   //= `! (string) "hell"`
   //= '≠ (string) "hel"'
-  //= "@ Object.<anonymous> (<usage demo>:15:3)"
+  //= "@ Object.<anonymous> (<usage demo>:16:3)"
   //= ""
 D.expect('fails=', 1);        //= `+ expect.failCnt = 1`
 D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`

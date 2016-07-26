@@ -223,6 +223,11 @@ function LibDemoUtil160404(D) {
         }
       }
       break;
+    case 'strlen':
+      exp.crit = '===';
+      exp.rslt = String(exp.rslt).length;
+      exp.rsltDescr = '(strlen) ' + exp.rslt;
+      break;
     }
     switch (exp.crit) {
     case 'type':
