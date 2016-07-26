@@ -137,24 +137,26 @@ function check_demo () {
   echo -n $'\r'"! $DEMO_NICK: "
   diffstat ${CFG[use-color]:+-C} -f 4 -- "$OUTPUT_DIFF" \
     | lang_c sed -nre 's~^.*\|\s*~\t~p'
+
   local GRP_SEP='…'
   [ -n "${CFG[use-color]}" ] && GRP_SEP='\x1b[90m'"$GRP_SEP"'\x1b[0m'
   GRP_SEP='s~^-{2}$~     '"$GRP_SEP~"
-  diff_add_old_lnums "$OUTPUT_DIFF" | lang_c grep -C "${CFG[diff-context]%\
-    }" -Pe '^[\s0-9]*(\x1b\[[0-9;]*m|)[\+\-]' | lang_c sed -re "$GRP_SEP"
-  return 3
-}
 
-
-function diff_add_old_lnums () {
-  local COLORIZE=( cat )
-  [ -n "${CFG[use-color]}" ] && COLORIZE=( lang_c sed -re '
+  local COLORIZE_DIFF='
     s~^( *)([0-9+]+)\t([:|+-])~\1\x1b[90m\2\x1b[0m\t\x1b[0\a\3~
     s!\a\-!;91&!
     s!\a\+!;94&!
     s!(;[0-9;]+|)\a(.)!\1m\2\x1b[0\1m!
     s~$~\x1b[0m~
-    ' )
+    '
+  diff_add_old_lnums "$OUTPUT_DIFF" | lang_c grep -C "${CFG[diff-context]%\
+    }" -Pe '^[\s0-9]*[\+\-]' | lang_c sed -re "$GRP_SEP
+    ${CFG[use-color]:+$COLORIZE_DIFF}"
+  return 3
+}
+
+
+function diff_add_old_lnums () {
   lang_c sed -nre '
     : read_all
     $!{N;b read_all}
@@ -167,7 +169,7 @@ function diff_add_old_lnums () {
     p' -- "$@" | nl -ba --starting-line-num=0 | lang_c sed -re '
     s~\r~\n     +\t~g
     1{s~^[0-9 ]+\t(\n|$)~~;/^$/d}
-    ' | "${COLORIZE[@]}"
+    '
 }
 
 

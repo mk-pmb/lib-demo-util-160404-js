@@ -30,6 +30,10 @@ function LibDemoUtil160404(D) {
     rArrWithStroke: '\u21cf',
   };
 
+  D.errMsg = {
+    maxFails: 'Reached maximum number of expectation failures',
+  };
+
   D.chap = function (title) { console.log('\n=== ' + title + ' ==='); };
   D.annot = function (hint) { console.log('# ' + hint); };
 
@@ -281,9 +285,17 @@ function LibDemoUtil160404(D) {
     if (!exp.where) { exp.where = D.shortenStackTrace(new Error('dummy')); }
     console.error(['! ' + exp.rsltDescr, exp.fail, '@ ' + exp.where,
       ''].join('\n'));
+    if ((D.expect.maxFails > 0) && (D.expect.failCnt >= D.expect.maxFails)) {
+      exp.fail = D.errMsg.maxFails + ' (' + D.expect.failCnt +
+        '/' + D.expect.maxFails + ')';
+      throw new Error(exp.fail);
+      // ^- Node probably won't print the error b/c that would happen after
+      //    D.verifyOnExit, which exit()s.
+    }
     return false;
   };
   D.expect.verbose = false;
+  D.expect.maxFails = 0;
   D.expect.failCnt = 0;
 
   D.expect.chkIsin = function (exp, isin, grp) {
