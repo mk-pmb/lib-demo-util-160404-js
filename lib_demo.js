@@ -75,7 +75,7 @@ function LibDemoUtil160404(D) {
   D.ok = function (mod) {
     var ok = true;
     if (D.expect.failCnt !== 0) { ok = false; }
-    if (mod === process) {
+    if (mod === D.verifyOnExit) {
       if (ok || D.ok.hadFailMsg) { return ok; }
       mod = null;
     }
@@ -93,7 +93,7 @@ function LibDemoUtil160404(D) {
   };
 
   D.verifyOnExit = function libDemo_verifyOnExit() {
-    if (!D.ok(process)) { process.exit(D.exitCodeTestsFailed); }
+    if (!D.ok(D.verifyOnExit)) { process.exit(D.exitCodeTestsFailed); }
   };
   process.on('exit', D.verifyOnExit);
 
@@ -155,6 +155,19 @@ function LibDemoUtil160404(D) {
       break;
     }
     return '(' + t + ') ' + String(x);
+  };
+
+
+  D.poorMansRgxFmt = function (rgx, txt) {
+    txt = String(txt).match(rgx);
+    if (!txt) { return false; }
+    rgx = String(rgx).split(/\|\$:|\/[a-z]*$/);
+    if (rgx.length > 2) {
+      return rgx[rgx.length - 2].replace(/\$([0-9])/g,
+        function (mtc, grp) { return (txt[mtc && grp] || ''); });
+    }
+    if (txt.length === 1) { txt = txt[0]; }
+    return D.oneLineJSONify(txt);
   };
 
 
@@ -226,6 +239,17 @@ function LibDemoUtil160404(D) {
       exp.fail = (exp.rsltDescr === exp.want ? false
         : D.ent.ne + ' ' + exp.want);
       break;
+    case RegExp:
+    case 'regexp':
+      exp.okHint = D.poorMansRgxFmt(exp.want, exp.rslt);
+      if (exp.okHint === false) {
+        exp.fail = D.ent.rarrWithStroke + ' ' + String(exp.want);
+      } else {
+        exp.fail = false;
+        exp.okHint = D.ent.rarr + ' ' + exp.okHint;
+        exp.rsltDescr = exp.rsltDescr.replace(/\s[\S\s]*$/, ' …');
+      }
+      break;
     case true:
       exp.fail = false;
       exp.okHint = D.ent.Rarr + ' ' + exp.want;
@@ -282,14 +306,8 @@ function LibDemoUtil160404(D) {
       return;
     }
     if (exp.want instanceof RegExp) {
-      err = err.match(exp.want);
-      if (err) {
-        exp.fail = false;
-        exp.rsltDescr = '(error) …';
-        exp.okHint = D.ent.rarr + ' ' + err[0];
-      } else {
-        exp.fail = D.ent.rarrWithStroke + ' ' + String(exp.want);
-      }
+      exp.crit = 'regexp';
+      exp.rslt = err;
       return;
     }
     return { crit: 'like' };

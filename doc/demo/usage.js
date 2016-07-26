@@ -37,18 +37,30 @@ D.expect('type', 'function');
 D.result = process.pid;
 // ignore a line:
 D.expect('type', 'number');       //…
+D.expect('type', 'number');       //=0 `+ (number) 0 ∈ {number}`
+
+D.chap('RegExp matching:');
+D.result = '404 Not Found';
+D.expect('regexp', /^\d+/);       //= `+ (string) … → "404"`
+D.expect('regexp', /\S+/g);       //= `+ (string) … → ["404", "Not", "Found"]`
+D.expect('regexp', /^(\d+) ([\S\s]+)$|$:$2 (HTTP $1) <- $0/);
+  //= `+ (string) … → Not Found (HTTP 404) <- 404 Not Found`
 
 D.chap('Synchronous runtime errors:');
-D.catch(function ohNoez() { throw new Error(hi); });
-D.expect('error', hi);            //= `+ (error) "hello"`
-D.expect('error', /[a-z]{2}$/);   //= `+ (error) … → lo`
+D.catch(function () { throw new Error(D.result); });
+D.expect('error', '404 Not Found');   //= `+ (error) "404 Not Found"`
+D.expect('error', /^\d+/);      //= `+ (error) … → "404"`
+D.expect('error', /\S+/g);      //= `+ (error) … → ["404", "Not", "Found"]`
+D.expect('error', /^(\d+) ([\S\s]+)$|$:$2 (HTTP $1) <- $0/);
+  //= `+ (error) … → Not Found (HTTP 404) <- 404 Not Found`
 
 D.chap('Custom assertions:');
 D.result = 42;
 D.expect((D.result < 0), 'negative');
   //= `! (number) 42`
   //= `⇏ negative`
-  //= `@ Object.<anonymous> (<usage demo>:48:3)`
+  //=0 `@ Object.<anonymous> (<usage demo>:0:0)`
+  // ^-- when testing this line, treat all numbers as 0.
   //= ``
 D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
 D.expect((D.result > 0), 'positive');   //= `+ (number) 42 ⇒ positive`

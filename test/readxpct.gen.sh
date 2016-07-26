@@ -32,25 +32,29 @@ function readexp_gen () {
   write_sed_file filter '
     \|^\s*/[/\*][A-Za-z0-9 \t]|{b skip_this_line}
     # ^- skip easy comments
-    s~^(\s*|.*\);\s+)//(=|…)\s*~\a\2~p
+    s~^(\s*|.*\);\s+)//(=|…)~\a\2~p
     '"$FLT_ANNOT"'
     :skip_this_line
     ' || return $?
 
-  local LNUM_MARK='s~^\s*([0-9]+)\s\a'
-  local EXACT_LINE_QUOTES="
-    $LNUM_MARK"'=`([^`]*)`$~#=\2~'
-  EXACT_LINE_QUOTES+="
+  local EXACT_LINE_QUOTES='s~{lnum}=\s*`([^`]*)`$~#=\2~'
+  EXACT_LINE_QUOTES='
+    s~({lnum}=)(0)(\s*`)~\1\4\a\3@\2\a~
+    '"$EXACT_LINE_QUOTES
     ${EXACT_LINE_QUOTES//$GRAV/$QUOT}
     ${EXACT_LINE_QUOTES//$GRAV/$APOS}
-    "
-  local ANY_ONE_LINE="$LNUM_MARK"'…$~\1s!^.*$!§!\n#=§~'
+    "'
+    s~^#=\a(0)@([0-9]+)\a~\2s![+-]?[0-9]+!0!g\n#=~
+    '
+  local ANY_ONE_LINE='s~{lnum}…$~\1s!^.*$!§!\n#=§~'
   ANY_ONE_LINE="${ANY_ONE_LINE//§/[… ignore output line #\\1 …]}"
 
   write_sed_file transform "
     $EXACT_LINE_QUOTES
     $ANY_ONE_LINE
-    " || return $?
+    " '
+    s~\{lnum\}~^\\s*([0-9]+)\\s\\a~
+    ' || return $?
 
   return 0
 }
@@ -59,8 +63,8 @@ function readexp_gen () {
 function write_sed_file () {
   local SUB_FN="$1"
   local CODE="$2"
+  local TRANSFORM="$3"
   local FN="${SED_BFN:-E_NO_SED_BFN}.$SUB_FN.sed"
-  local TRANSFORM=''
   case "$CODE" in
     $'\n  '* )
       CODE="${CODE:1}"

@@ -1,5 +1,5 @@
 \|^\s*/[/\*][A-Za-z0-9 \t]|{b skip_this_line}
-s~^(\s*|.*\);\s+)//(=|…)\s*~\a\2~p
+s~^(\s*|.*\);\s+)//(=|…)~\a\2~p
 /^\s*D\.(annot|chap)\(/{
 : mergelines_annot
 /["']\s*\+\s*$/{N;b mergelines_annot}
