@@ -28,6 +28,7 @@ function parse_cli_opts () {
     case "$OPT" in
       '' ) continue;;
       -- ) POS_ARGS+=( "$@" ); break;;
+      --xpct ) CFG[action]=read_expectations;;
       --color ) CFG[use-color]=+;;
       --no-color ) CFG[use-color]=;;
       --action=* | \

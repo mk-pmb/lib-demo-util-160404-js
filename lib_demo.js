@@ -128,7 +128,7 @@ function LibDemoUtil160404(D) {
     if (s.length <= max) { return s; }
     if ((!end) && (end !== 0)) { end = 0.5; }
     if (end > 0) {
-      if (end < 1) { end = Math.floor(end * max); }
+      if (end < 1) { end = Math.round(end * max); }
       max -= end;
       end = s.substr(s.length - end, end);
     } else {
@@ -227,11 +227,6 @@ function LibDemoUtil160404(D) {
         }
       }
       break;
-    case 'strlen':
-      exp.crit = '===';
-      exp.rslt = String(exp.rslt).length;
-      exp.rsltDescr = '(strlen) ' + exp.rslt;
-      break;
     }
     switch (exp.crit) {
     case 'type':
@@ -244,7 +239,7 @@ function LibDemoUtil160404(D) {
       break;
     case '!==':
       exp.fail = (exp.rslt !== exp.want ? false : '= ' + D.describe(exp.want));
-      exp.okHint = D.ent.ne + ' ' + exp.want;
+      exp.okHint = D.ent.ne + ' ' + D.describe(exp.want);
       break;
     case 'like':
       exp.want = D.describe(exp.want);
@@ -272,6 +267,13 @@ function LibDemoUtil160404(D) {
     case Error:
     case 'error':
       break;    // has been handled above
+    case 'strlen':
+      exp.rslt = D.oneLineJSONify(D.fancyStrLen(exp.rslt));
+      exp.rsltDescr = '(strlen) ' + exp.rslt;
+      exp.want = D.oneLineJSONify(exp.want);
+      exp.fail = (exp.rslt === exp.want ? false
+        : D.ent.ne + ' ' + exp.want);
+      break;
     default:
       throw new Error('unsupported criterion: ' + D.describe(exp.crit));
     }
@@ -336,6 +338,12 @@ function LibDemoUtil160404(D) {
 
   D.catch = function (provoke) {
     try { D.result = provoke(); } catch (err) { D.result = err; }
+  };
+
+
+  D.fancyStrLen = function fancyStrLen(x) {
+    if (x instanceof Array) { return x.map(fancyStrLen); }
+    return String(x).length;
   };
 
 

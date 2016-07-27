@@ -9,7 +9,7 @@ D.hrPath.fileAliases[module.filename] = '<usage demo>';
 D.result =      hi.substr(0, 4);
 D.expect('===', 'hell');    //= `+ (string) "hell"`
 D.expect('strlen', 4);      //= `+ (strlen) 4`
-D.expect('!==', 'help');    //= `+ (string) "hell" ≠ help`
+D.expect('!==', 'help');    //= `+ (string) "hell" ≠ (string) "help"`
 D.expect('fails=', 0);      //= `+ expect.failCnt = 0`
 
 D.chap('Expect violation of an expectation:');
@@ -22,6 +22,13 @@ D.expect('fails=', 1);        //= `+ expect.failCnt = 1`
 D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
 D.expect('fails=', 0);        //= `+ expect.failCnt = 0`
 
+D.chap('UTF-8 vs. UCS-2:');
+D.result = '😇'; // U+01F607 smiling face with halo
+D.expect('===', String.fromCodePoint(0x01F607));  //= `+ (string) "😇"`
+D.expect('!==', '\u01F607');            //= `+ (string) "😇" ≠ (string) "Ƕ07"`
+D.expect('===', '\uD83D\uDE07');        //= `+ (string) "😇"`
+D.expect('strlen', D.result.length);    //= `+ (strlen) 2`
+
 D.chap('Data containers:');
 D.result = hi.split('');
 D.expect('like', ['h', 'e', 'l', 'l', 'o']);
@@ -30,6 +37,7 @@ D.annot('^-- whether our human-readable description of the data looks the ' +
   'same');    // ^-- for test detection, the "+" has to be on ends of lines.
 D.expect('type', 'array');
   //= `+ (array) ["h", "e", "l", "l", "o"] ∈ {array}`
+D.expect('strlen', [1, 1, 1, 1, 1]);  //= `+ (strlen) [1, 1, 1, 1, 1]`
 
 D.result = function noop() { return; };
 D.expect('type', 'function');
