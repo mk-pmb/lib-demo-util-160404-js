@@ -39,6 +39,10 @@ D.expect('type', 'array');
   //= `+ (array) ["h", "e", "l", "l", "o"] ∈ {array}`
 D.expect('strlen', [1, 1, 1, 1, 1]);  //= `+ (strlen) [1, 1, 1, 1, 1]`
 
+D.result = { str: ['abc', 'def'], num: [123, -456] };
+D.expect('type', 'Object');
+  //= `+ (Object) {"str": ["abc", "def"], "num": [123, -456]} ∈ {Object}`
+
 D.result = function noop() { return; };
 D.expect('type', 'function');
   //= `+ function noop() { return; } ∈ {function}`
@@ -90,7 +94,14 @@ D.result = 'ignored expect';
 // D.expect('===', 'whatever');    //= `? not-ignored expect`
 // D.annot('ignored annotation');  //= `? not-ignored annotation`
 
-
+D.chap('Smart display of certain characters: (using univeil)');
+D.annot('control characters:');
+D.result = decodeURIComponent('%00%04%07%08%09%0A%0C%0D%1B%7F');
+D.expect('type', 'string');
+  //= `+ (string) "\u0000\u0004\u0007\b\t\n\f\r\u001b\u007F" ∈ {string}`
+D.annot('for comparison, native JSON.stringify():');
+D.result = JSON.stringify(D.result);
+D.expect('===', '"\\u0000\\u0004\\u0007\\b\\t\\n\\f\\r\\u001b\x7F"'); //…
 
 
 

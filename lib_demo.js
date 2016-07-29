@@ -2,7 +2,7 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var pathLib = require('path');
+var pathLib = require('path'), univeil = require('univeil');
 
 function LibDemoUtil160404(D) {
   D = (D || (this instanceof Object && this) || {});
@@ -138,10 +138,7 @@ function LibDemoUtil160404(D) {
   };
 
 
-  D.oneLineJSONify = function (x) {
-    return JSON.stringify(x, null, 1).replace(/\n/g, ''
-      ).replace(/^(\[|\{) /, '$1');
-  };
+  D.oneLineJSONify = function (x) { return univeil.jsonify(x, null, -1); };
 
 
   D.describe = function (x) {
@@ -155,9 +152,10 @@ function LibDemoUtil160404(D) {
     case 'null':
     case 'undefined':
       return t;
-    case 'string':
-    case 'object':
     case 'array':
+    case 'object':
+    case 'Object':
+    case 'string':
       x = D.oneLineJSONify(x);
       break;
     }

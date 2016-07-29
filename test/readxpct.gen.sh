@@ -12,7 +12,10 @@ function readexp_gen () {
 
   write_sed_file normalize '
     s~\s+$~~
-    s~\a|\r~~g
+    s~\a~‹¿bel>~g
+    s~\r~‹¿cr>~g
+    s~\x1B~‹¿esc>~g
+    s~\x7F~‹¿del>~g
     ' || return $?
 
   local FLT_ANNOT='

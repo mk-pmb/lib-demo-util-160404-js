@@ -83,8 +83,12 @@ function find_demo_files () {
       -o -name .git
       -o -name .svn
     ')' -prune ','
-    -path '*/demo/*'    # make sure to use "." as basedir so that demo/x.js
-                        # is ./demo/x.js
+    '(' -false
+      -o -path '*/demo/*' # make sure to use "." as basedir so that demo/x.js
+                          # is ./demo/x.js
+      -o -path './usage.*'
+      -o -path '*/test/demo.*.js'
+    ')'
     -name '*.js'
     )
   find . "${FIND_OPTS[@]}" | cut -b 3- | lang_c sort -V
