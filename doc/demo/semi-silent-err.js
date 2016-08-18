@@ -2,13 +2,13 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var D = require('lib-demo-util-160404')();
+var D = require('lib-demo-util-160404')(module);
 
 D.result = 42;
 D.expect('===', 23);
   //= `! (number) 42`
   //= `≠ (number) 23`
-  //= `@ Object.<anonymous> (…/demo/semi-silent-err.js:8:3)`
+  //= `☛ (…/demo/semi-silent-err.js:8:3)`
   //= ``
 
-D.ok(module);   //= `-ERR some semi-silent-err tests failed.`
+D.ok();   //= `-ERR some semi-silent-err tests failed.`

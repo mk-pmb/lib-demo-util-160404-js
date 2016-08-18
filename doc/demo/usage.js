@@ -2,7 +2,7 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var D = require('lib-demo-util-160404')(), hi = 'hello';
+var D = require('lib-demo-util-160404')(module), hi = 'hello';
 D.expect.verbose = true;
 D.hrPath.fileAliases[module.filename] = '<usage demo>';
 
@@ -16,7 +16,7 @@ D.chap('Expect violation of an expectation:');
 D.expect('===', 'hel');
   //= `! (string) "hell"`
   //= '≠ (string) "hel"'
-  //= "@ Object.<anonymous> (<usage demo>:16:3)"
+  //= "☛ (<usage demo>:16:3)"
   //= ""
 D.expect('fails=', 1);        //= `+ expect.failCnt = 1`
 D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
@@ -28,6 +28,8 @@ D.expect('===', String.fromCodePoint(0x01F607));  //= `+ (string) "😇"`
 D.expect('!==', '\u01F607');            //= `+ (string) "😇" ≠ (string) "Ƕ07"`
 D.expect('===', '\uD83D\uDE07');        //= `+ (string) "😇"`
 D.expect('strlen', D.result.length);    //= `+ (strlen) 2`
+
+
 
 D.chap('Data containers:');
 D.result = hi.split('');
@@ -43,15 +45,10 @@ D.result = { str: ['abc', 'def'], num: [123, -456] };
 D.expect('type', 'Object');
   //= `+ (Object) {"str": ["abc", "def"], "num": [123, -456]} ∈ {Object}`
 
-D.result = function noop() { return; };
+D.result = function noop() { return 'I contain source code!'; };
 D.expect('type', 'function');
-  //= `+ function noop() { return; } ∈ {function}`
+  //= `+ (function) noop() { return 'I contain source code!'; } ∈ {function}`
 
-D.result = process.pid;
-// when testing, ignore a line:
-D.expect('type', 'number');       //…
-// when testing, for one line, replace all numbers with zero:
-D.expect('type', 'number');       //=0 `+ (number) 0 ∈ {number}`
 
 D.result = 'ints -> zero: -2 -1 -0 | 0 | +0 +1 +2 | 1 2 345 6789';
 D.expect('type', 'string');
@@ -64,29 +61,32 @@ D.expect('type', 'string');
   //=0 `+ (string) "exp nums -> zero: 0 0 0 | 0 | 0 0" ∈ {string}`
 
 D.chap('RegExp matching:');
+D.annot('hello404');
 D.result = '404 Not Found';
 D.expect('regexp', /^\d+/);       //= `+ (string) … → "404"`
 D.expect('regexp', /\S+/g);       //= `+ (string) … → ["404", "Not", "Found"]`
 D.expect('regexp', /^(\d+) ([\S\s]+)$|$:$2 (HTTP $1) <- $0/);
-  //= `+ (string) … → Not Found (HTTP 404) <- 404 Not Found`
+  //= `+ (string) … → "Not Found (HTTP 404) <- 404 Not Found"`
 
 D.chap('Synchronous runtime errors:');
 D.catch(function () { throw new Error(D.result); });
-D.expect('error', '404 Not Found');   //= `+ (error) "404 Not Found"`
+D.expect('error', '404 Not Found');   //= `+ (error) 404 Not Found`
 D.expect('error', /^\d+/);      //= `+ (error) … → "404"`
 D.expect('error', /\S+/g);      //= `+ (error) … → ["404", "Not", "Found"]`
 D.expect('error', /^(\d+) ([\S\s]+)$|$:$2 (HTTP $1) <- $0/);
-  //= `+ (error) … → Not Found (HTTP 404) <- 404 Not Found`
+  //= `+ (error) … → "Not Found (HTTP 404) <- 404 Not Found"`
 
 D.chap('Custom assertions:');
 D.result = 42;
+D.expect('override', { where: 'beaver' });
+  // ^-- for the next expectation, use custom stack hint.
 D.expect((D.result < 0), 'negative');
   //= `! (number) 42`
-  //= `⇏ negative`
-  //=0 `@ Object.<anonymous> (<usage demo>:0:0)`
+  //= `↯ confuted: negative`
+  //= /beaver|$:drunken $0/
   //= ``
 D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
-D.expect((D.result > 0), 'positive');   //= `+ (number) 42 ⇒ positive`
+D.expect((D.result > 0), 'positive');   //= `+ (number) 42 ✔ positive`
 
 D.chap('Output annotations in simple comment lines are ignored:');
 // D.chap('ignored chapter');      //= `? not-ignored chapter`
@@ -95,13 +95,52 @@ D.result = 'ignored expect';
 // D.annot('ignored annotation');  //= `? not-ignored annotation`
 
 D.chap('Smart display of certain characters: (using univeil)');
-D.annot('control characters:');
-D.result = decodeURIComponent('%00%04%07%08%09%0A%0C%0D%1B%7F');
+D.annot('some control characters:');
+D.result = decodeURIComponent('%00%04%07%08%09%0A%0C%0D%1B');
 D.expect('type', 'string');
-  //= `+ (string) "\u0000\u0004\u0007\b\t\n\f\r\u001b\u007F" ∈ {string}`
-D.annot('for comparison, native JSON.stringify():');
-D.result = JSON.stringify(D.result);
-D.expect('===', '"\\u0000\\u0004\\u0007\\b\\t\\n\\f\\r\\u001b\x7F"'); //…
+  //= `+ (string) "\u0000\u0004\u0007\b\t\n\f\r\u001b" ∈ {string}`
+D.annot('ASCII DEL:');
+D.result = '\x7F';
+D.expect('type', 'string');
+  //= `+ (string) "\u007F" ∈ {string}`
+
+D.annot('D.jsonify = univeil(JSON.stringify(…)):');
+D.result = D.jsonify('\x7F');
+D.expect('strlen', 8);      //= `+ (strlen) 8`
+D.result = D.result.charCodeAt(1);
+D.expect('===', 0x5C);      //= `+ (number) 92`
+
+D.annot('compare native JSON.stringify():');
+D.result = JSON.stringify('\x7F');
+D.expect('strlen', 3);      //= `+ (strlen) 3`
+D.result = D.result.charCodeAt(1);
+D.expect('===', 0x7F);      //= `+ (number) 127`
+
+
+D.chap('Utility functions:');
+function vowels(sel, opt) { return D.getProp.these(vowels.lower, sel, opt); }
+vowels.lower = 'aeiou'.match(/\S/g);
+
+D.result = vowels(Object);
+D.expect('like', vowels.lower);   //= `+ (array) ["a", "e", "i", "o", "u"]`
+D.result = vowels(Array);
+D.expect('like', vowels.lower.join(''));    //= `+ (string) "aeiou"`
+D.result = vowels(Array, '+');
+D.expect('like', vowels.lower.join('+'));   //= `+ (string) "a+e+i+o+u"`
+D.result = vowels(2);
+D.expect('===', 'i');             //= `+ (string) "i"`
+D.result = vowels('342');
+D.expect('===', 'oui');           //= `+ (string) "oui"`
+
+
+D.result = D.repeat(['a', 'b', 'c', {}], 2);
+D.expect('like', ['a', 'b', 'c', {}, 'a', 'b', 'c', {}]);
+//= `+ (array) ["a", "b", "c", {}, "a", "b", "c", {}]`
+D.result[1] = 1;
+D.result[3].o = 0;
+D.result[5] = 5;
+D.expect('like', ['a', 1, 'c', {o: 0}, 'a', 5, 'c', {o: 0}]);
+//= `+ (array) ["a", 1, "c", {"o": 0}, "a", 5, "c", {"o": 0}]`
 
 
 
@@ -110,4 +149,5 @@ D.expect('===', '"\\u0000\\u0004\\u0007\\b\\t\\n\\f\\r\\u001b\x7F"'); //…
 
 
 
-D.ok(module);     //= "+OK all usage tests passed."
+
+D.ok();     //= "+OK all usage tests passed."

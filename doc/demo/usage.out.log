@@ -1,0 +1,74 @@
++ (string) "hell"
++ (strlen) 4
++ (string) "hell" ≠ (string) "help"
++ expect.failCnt = 0
+
+=== Expect violation of an expectation: ===
+! (string) "hell"
+≠ (string) "hel"
+☛ (<usage demo>:16:3)
+
++ expect.failCnt = 1
++ expect.failCnt = 1, reset.
++ expect.failCnt = 0
+
+=== UTF-8 vs. UCS-2: ===
++ (string) "😇"
++ (string) "😇" ≠ (string) "Ƕ07"
++ (string) "😇"
++ (strlen) 2
+
+=== Data containers: ===
++ (array) ["h", "e", "l", "l", "o"]
+# ^-- whether our human-readable description of the data looks the same
++ (array) ["h", "e", "l", "l", "o"] ∈ {array}
++ (strlen) [1, 1, 1, 1, 1]
++ (Object) {"str": ["abc", "def"], "num": [123, -456]} ∈ {Object}
++ (function) noop() { return 'I contain source code!'; } ∈ {function}
++ (string) "ints -> zero: -2 -1 -0 | 0 | +0 +1 +2 | 1 2 345 6789" ∈ {string}
++ (string) "floats -> zero: -2.2 -1.1 -0.5 -0.0 | 0.000 | +0.5 +1.1 +2.2" ∈ {string}
++ (string) "exp nums -> zero: -2.2e-2 -1.1E-1 -0e0 | 0.0E0 | 1.1e+1 +2.2e2" ∈ {string}
+
+=== RegExp matching: ===
+# hello404
++ (string) … → "404"
++ (string) … → ["404", "Not", "Found"]
++ (string) … → "Not Found (HTTP 404) <- 404 Not Found"
+
+=== Synchronous runtime errors: ===
++ (error) 404 Not Found
++ (error) … → "404"
++ (error) … → ["404", "Not", "Found"]
++ (error) … → "Not Found (HTTP 404) <- 404 Not Found"
+
+=== Custom assertions: ===
+! (number) 42
+↯ confuted: negative
+☛ beaver
+
++ expect.failCnt = 1, reset.
++ (number) 42 ✔ positive
+
+=== Output annotations in simple comment lines are ignored: ===
+
+=== Smart display of certain characters: (using univeil) ===
+# some control characters:
++ (string) "\u0000\u0004\u0007\b\t\n\f\r\u001b" ∈ {string}
+# ASCII DEL:
++ (string) "\u007F" ∈ {string}
+# D.jsonify = univeil(JSON.stringify(…)):
++ (strlen) 8
++ (number) 92
+# compare native JSON.stringify():
++ (strlen) 3
++ (number) 127
+
+=== Utility functions: ===
++ (array) ["a", "e", "i", "o", "u"]
++ (string) "aeiou"
++ (string) "a+e+i+o+u"
++ (string) "i"
++ (string) "oui"
++ (array) ["a", "b", "c", {}, "a", "b", "c", {}]
++ (array) ["a", 1, "c", {"o": 0}, "a", 5, "c", {"o": 0}]
++OK all usage tests passed.

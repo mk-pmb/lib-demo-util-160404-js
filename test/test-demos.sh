@@ -8,6 +8,12 @@ function main () {
   CFG[action]=test_demos
   CFG[diff-context]=2
   CFG[use-color]=+
+  CFG[interpreter:js]=nodejs
+  CFG[interpreter:php]=php
+  CFG[interpreter:pl]=perl
+  CFG[interpreter:py]=python
+  CFG[interpreter:sh]='#!'
+  CFG[lint]=opportunistic
   tty --silent || CFG[use-color]=
   case "$TERM" in
     dumb ) CFG[use-color]=;;
@@ -28,9 +34,9 @@ function parse_cli_opts () {
     case "$OPT" in
       '' ) continue;;
       -- ) POS_ARGS+=( "$@" ); break;;
-      --xpct ) CFG[action]=read_expectations;;
       --color ) CFG[use-color]=+;;
       --no-color ) CFG[use-color]=;;
+      --nolint ) CFG[lint]='skip';;
       --action=* | \
       --diff-context=* )
         OPT="${OPT#--}"
@@ -47,15 +53,30 @@ function parse_cli_opts () {
 }
 
 
+function list_pkjs_interpreters () {
+  nodejs -p '
+    var progs = require("./package.json").config.DemoUtil160404.interpreters;
+    Object.keys(progs).map(fxt => fxt + "\t" + progs[fxt]).join("\n")'
+}
+
+
 function test_demos () {
   local DEMOS=( "$@" )
   if [ "${#DEMOS[@]}" == 0 ]; then
     cd_up_to_package_basedir || return $?
+    read_cfg_assoc interpreter: $'\t' < <(list_pkjs_interpreters 2>/dev/null)
     readarray -t DEMOS < <(find_demo_files)
   fi
 
   local PKG_BASEDIR="$PWD"
   cd "$PKG_BASEDIR" || return $?  # fail early if we can't go back later
+
+  case "${CFG[lint]}" in
+    '' ) ;;
+    opportunistic ) opportunistic_lint || return $?;;
+    skip ) CFG[lint]='<skipped>';;
+    * ) echo "E: Unsupported linter: ${CFG[lint]}"; return $?;;
+  esac
 
   local DEMO=
   local SXS=0
@@ -72,24 +93,84 @@ function test_demos () {
   [ "$SXS:$FAILS" == 0:0 ] && return 3$(echo 'E: unable to find any demos.' >&2)
   [ "$FAILS" != 0 ] && return 3$(echo "E: $FAILS demos failed." >&2)
   echo "I: All $SXS demos produced their expected output."
+
+  case "${CFG[lint]}" in
+    '' | '<linted>' ) ;;
+    * ) echo "W: Unexpected lint result: ${CFG[lint]}" >&2;;
+  esac
+
   return "$FAILS"
 }
 
 
+function read_cfg_assoc () {
+  local PFX="$1"; shift
+  local SEP="$1"; shift
+  [ -n "$SEP" ] || SEP=$'[=\t:]'
+  local KEY=
+  while read -rs KEY; do
+    [ "${KEY/$SEP/}" == "$KEY" ] && continue
+    CFG["$PFX${KEY%%$SEP*}"]="${KEY#*$SEP}"
+  done
+}
+
+
+function list_cfg () {
+  local KEYS=()
+  readarray -t KEYS < <(printf '%s\n' "${!CFG[@]}" | sort -V)
+  local KEY=
+  for KEY in "${KEYS[@]}"; do
+    echo "$KEY='${CFG[$KEY]}'"
+  done
+}
+
+
+function which1st () {
+  which "$@" 2>/dev/null | grep -Pe '^/' -m 1
+}
+
+
+function opportunistic_lint () {
+  if readlink -m "$(which1st jsl)" | grep -qFe /jslint; then
+    CFG[lint]='<linted>'
+    jsl; return $?
+  fi
+  if which1st jslint >/dev/null; then
+    CFG[lint]='<linted>'
+    jslint "${DEMOS[@]}"; return $?
+  fi
+  CFG[lint]='<skipped>'
+  return 0
+}
+
+
 function find_demo_files () {
+  local DEMO_FEXTS=()
+  local FXT=
+  for FXT in "${!CFG[@]}"; do case "$FXT" in
+    interpreter:* ) DEMO_FEXTS+=( ".${FXT#*:}" );;
+  esac; done
   local FIND_OPTS=(
     -xdev
    '(' -false
       -o -name .git
       -o -name .svn
+      -o -name bower_components
+      -o -name node_modules
     ')' -prune ','
     '(' -false
-      -o -path '*/demo/*' # make sure to use "." as basedir so that demo/x.js
-                          # is ./demo/x.js
-      -o -path './usage.*'
-      -o -path '*/test/demo.*.js'
+    )
+  for FXT in "${DEMO_FEXTS[@]}"; do
+    FIND_OPTS+=(
+      -o -path "*/demo/*$FXT"
+        # ^-- make sure to use "." as basedir so that demo/x.js is ./demo/x.js
+      -o -path "./usage$FXT"
+      -o -path "*/test/demo.*$FXT"
+      -o -path "*/*.demo$FXT"
+      )
+  done
+  FIND_OPTS+=(
     ')'
-    -name '*.js'
     )
   find . "${FIND_OPTS[@]}" | cut -b 3- | lang_c sort -V
 }
@@ -111,37 +192,75 @@ function lang_c () {
 }
 
 
+function logwarn () {
+  local MSG="$*"
+  local PFX='! '
+  case "$MSG" in
+    $'\r'* ) MSG="${MSG:1}"; PFX=$'\r'"$PFX";;
+  esac
+  echo "$PFX$MSG" >&2
+}
+
+
 function check_demo () {
-  local DEMO_JS="$1"
-  local DEMO_DIR="$(dirname "$DEMO_JS")"
-  local DEMO_BFN="$(basename "$DEMO_JS" .js)"
-  local DEMO_NICK="$DEMO_DIR/$DEMO_BFN"
-  echo -n "? $DEMO_NICK: "
+  local DEMO_ABS="$1"
+  local DEMO_DIR="$(dirname "$DEMO_ABS")"
   cd "$DEMO_DIR" || return $?
-  local EXPECTED="$(read_expectations "$DEMO_BFN.js")"
-  [ -n "$EXPECTED" ] || return 2$(
-    echo $'\r'"! $DEMO_NICK: unable to find any output expectations." >&2)
-  local DEMO_OUTPUT="$(nodejs ./"$DEMO_BFN.js" 2>&1; echo :)"
+  local DEMO_FN="$(basename "$DEMO_ABS")"
+  local DEMO_FXT=
+  [[ "$DEMO_FN" =~ \.([a-z0-9]{2,6})$ ]] && DEMO_FXT="${BASH_REMATCH[1]}"
+  local DEMO_BFN="${DEMO_FN%\.$DEMO_FXT}"
+  local DEMO_NICK="$DEMO_DIR/$DEMO_BFN"
+  local INTERPRETER=( "${CFG[interpreter:$DEMO_FXT]}" )
+  case "$INTERPRETER" in
+    '' )
+      logwarn "$DEMO_ABS: no interpreter for *.$DEMO_FXT! found: $(
+        list_cfg | sed -nre '$!s~$~ ~;s~^interpreter:~~p' | tr -d '\n')"
+      return 2;;
+    '#!' )
+      [ -x "$DEMO_FN" ] || return 5$(
+        logwarn "$DEMO_ABS: not executable")
+      [ "$(head -c 2 "$DEMO_FN")" == '#!' ] || return 5$(
+        logwarn "$DEMO_ABS: doesn't start with shebang")
+      INTERPRETER=()
+      ;;
+  esac
+  INTERPRETER+=( ./"$DEMO_FN" )
+
+  echo -n "? $DEMO_NICK: "
+
+  local DEMO_OUTPUT="$("${INTERPRETER[@]}" 2>&1; echo :)"
   [ -n "${DEMO_OUTPUT%:}" ] || return 2$(
-    echo $'\r'"! $DEMO_NICK: demo produced no output at all." >&2)
-  DEMO_OUTPUT="$(failhint 'transform output' lang_c sed -rf <(echo "$EXPECTED"
-    ) -- <(echo -n "${DEMO_OUTPUT%:}"); echo :)"
-  DEMO_OUTPUT="${DEMO_OUTPUT%:}"
-  [ -n "$DEMO_OUTPUT" ] || return 2$(
-    echo $'\r'"! $DEMO_NICK: failed to transform the output." >&2)
+    logwarn $'\r'"$DEMO_NICK: demo produced no output at all.")
+  local OUT_CMP="$(nodejs "$SELFPATH/readxpct.js" "$DEMO_FN" \
+    readOutputFile <(echo -n "${DEMO_OUTPUT%:}") \
+    transformOutput compareOutputs printAndQuit)"
+  [ -n "$OUT_CMP" ] || return 2$(
+    logwarn $'\r'"$DEMO_NICK: unable to find any output expectations.")
+  # DEMO_OUTPUT="$(echo -n $'»»orig»»\a\n'"${DEMO_OUTPUT%:}" \
+  #   | SED_HINT='output:pre' sed_file output.transform.static -n \
+  #   | SED_HINT='output:dyn' sed_file <(echo "$EXPECTED") \
+  #   | SED_HINT='output:post' sed_file output.transform.static -n
+  #   echo :)"
+  # DEMO_OUTPUT="${DEMO_OUTPUT%:}"
+  # [ -n "$DEMO_OUTPUT" ] || return 2$(
+  #   logwarn $'\r'"$DEMO_NICK: failed to transform the output.")
   local OUTPUT_DIFF="$DEMO_BFN".out.diff
-  <<<"${DEMO_OUTPUT%$'\n'}" lang_c diff -sU "9${#EXPECTED}00" \
-    --label "$DEMO_NICK.expect" <(<<<"$EXPECTED" lang_c sed -nre 's~^#=~~p') \
-    --label "$DEMO_NICK.output" /dev/stdin \
+  <<<"${DEMO_OUTPUT%$'\n'}" lang_c diff -sU "${#OUT_CMP}0" \
+    --label "$DEMO_NICK.expect" <(<<<"$OUT_CMP" lang_c sed -re '
+      /^\+/d
+      s~^[=-]~~') \
+    --label "$DEMO_NICK.output" <(<<<"$OUT_CMP" lang_c sed -nre '
+      s~^[=+]~~p') \
     >"$OUTPUT_DIFF"
   local DIFF_RV=$?
   if [ "$DIFF_RV" == 0 ] && cleanup_nodiff "$OUTPUT_DIFF"; then
-    echo $'\r'"+ $DEMO_NICK: ok"
+    echo $'\b\b  \r'"✔ $DEMO_NICK"
     return 0
   fi
-  echo -n $'\r'"! $DEMO_NICK: "
-  diffstat ${CFG[use-color]:+-C} -f 4 -- "$OUTPUT_DIFF" \
-    | lang_c sed -nre 's~^.*\|\s*~\t~p'
+
+  logwarn $'\r'"$DEMO_NICK: $(diffstat ${CFG[use-color]:+-C} -f 4 \
+    -- "$OUTPUT_DIFF" | lang_c sed -nre 's~^.*\|\s*~\t~p')"
 
   local GRP_SEP='…'
   [ -n "${CFG[use-color]}" ] && GRP_SEP='\x1b[90m'"$GRP_SEP"'\x1b[0m'
@@ -181,19 +300,15 @@ function diff_add_old_lnums () {
 function sed_file () {
   local SED_BFN="$1"; shift
   local SED_FN="$SELFPATH/$SED_BFN.sed"
+  case "$SED_BFN" in
+    /dev/fd/* )
+      SED_FN="${SED_BFN%%=*}"
+      SED_BFN="${SED_BFN#*=}"
+      ;;
+  esac
   lang_c sed -rf "$SED_FN" "$@" && return 0
-  echo "W: ^-- $SED_BFN failed." >&2
+  echo "W: ^-- $SED_BFN ${SED_HINT:+($SED_HINT) }failed." >&2
   return 2
-}
-
-
-function read_expectations () {
-  sed_file readxpct.normalize -- "$@" \
-    | sed_file readxpct.filter -n | nl -ba \
-    | sed_file readxpct.transform
-  local PIPE_RV="${PIPESTATUS[*]}"
-  let PIPE_RV="${PIPE_RV// /+}"
-  return "$PIPE_RV"
 }
 
 

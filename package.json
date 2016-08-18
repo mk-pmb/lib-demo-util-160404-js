@@ -1,7 +1,14 @@
 { "name": "lib-demo-util-160404",
-  "version": "0.1.5",
+  "version": "0.1.8",
   "description": "Helps me write testable documentation.",
   "keywords": [],
+
+  "config": {
+    "DemoUtil160404": {
+      "interpreters": { "txtnl": "nl" },
+      "previewMaxLen": 80
+    }
+  },
 
   "author": "M.K. (https://github.com/mk-pmb)",
   "homepage": "https://github.com/mk-pmb/lib-demo-util-160404-js#readme",

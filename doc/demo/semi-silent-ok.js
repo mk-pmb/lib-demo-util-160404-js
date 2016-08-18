@@ -2,9 +2,9 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var D = require('lib-demo-util-160404')();
+var D = require('lib-demo-util-160404')(module);
 
 D.result = 42;
 D.expect('===', 42);
 
-D.ok(module);     //= "+OK all semi-silent-ok tests passed."
+D.ok();   //= "+OK all semi-silent-ok tests passed."
