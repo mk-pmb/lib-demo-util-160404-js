@@ -237,14 +237,6 @@ function check_demo () {
     transformOutput compareOutputs printAndQuit)"
   [ -n "$OUT_CMP" ] || return 2$(
     logwarn $'\r'"$DEMO_NICK: unable to find any output expectations.")
-  # DEMO_OUTPUT="$(echo -n $'»»orig»»\a\n'"${DEMO_OUTPUT%:}" \
-  #   | SED_HINT='output:pre' sed_file output.transform.static -n \
-  #   | SED_HINT='output:dyn' sed_file <(echo "$EXPECTED") \
-  #   | SED_HINT='output:post' sed_file output.transform.static -n
-  #   echo :)"
-  # DEMO_OUTPUT="${DEMO_OUTPUT%:}"
-  # [ -n "$DEMO_OUTPUT" ] || return 2$(
-  #   logwarn $'\r'"$DEMO_NICK: failed to transform the output.")
   local OUTPUT_DIFF="$DEMO_BFN".out.diff
   <<<"${DEMO_OUTPUT%$'\n'}" lang_c diff -sU "${#OUT_CMP}0" \
     --label "$DEMO_NICK.expect" <(<<<"$OUT_CMP" lang_c sed -re '
@@ -294,21 +286,6 @@ function diff_add_old_lnums () {
     s~\r~\n     +\t~g
     1{s~^[0-9 ]+\t(\n|$)~~;/^$/d}
     '
-}
-
-
-function sed_file () {
-  local SED_BFN="$1"; shift
-  local SED_FN="$SELFPATH/$SED_BFN.sed"
-  case "$SED_BFN" in
-    /dev/fd/* )
-      SED_FN="${SED_BFN%%=*}"
-      SED_BFN="${SED_BFN#*=}"
-      ;;
-  esac
-  lang_c sed -rf "$SED_FN" "$@" && return 0
-  echo "W: ^-- $SED_BFN ${SED_HINT:+($SED_HINT) }failed." >&2
-  return 2
 }
 
 
