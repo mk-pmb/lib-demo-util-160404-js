@@ -229,7 +229,7 @@ function check_demo () {
 
   echo -n "? $DEMO_NICK: "
 
-  local DEMO_OUTPUT="$("${INTERPRETER[@]}" 2>&1; echo :)"
+  local DEMO_OUTPUT="$(</dev/null "${INTERPRETER[@]}" 2>&1; echo :)"
   [ -n "${DEMO_OUTPUT%:}" ] || return 2$(
     logwarn $'\r'"$DEMO_NICK: demo produced no output at all.")
   local OUT_CMP="$(nodejs "$SELFPATH/readxpct.js" "$DEMO_FN" \

@@ -31,8 +31,8 @@ PT = CF.prototype;
 
 CF.trailingSimpleSpace = /[ \t\r]+$/;
 CF.sourceScaryStuff = /[\x00-\x06\x08\x0B-\x1A\x1C-\x1F\x7F-\x9F]+/;
-CF.simpleCommentLine = /^\s*\/[\/\*](?!=)/;
-CF.outputAnnot = /(?:^|\s)(?:\/{2}|#)=(0|i|)\s+([`'"\/~])/;
+CF.simpleCommentLine = /^\s*(?:\/[\/\*]|#\s)(?![=…])/;
+CF.outputAnnot = /(?:^|\s)(?:\/{2}|#)=(0|i|…|)(?:\s+([`'"\/~])|\s*$)/;
 CF.outputAnnotEndQuot = /(\W)([a-z]*)$/;
 CF.outputEndQuotMissing = 'unterminated output expectation literal';
 CF.outputApiFn = /^\s*D\.(chap|annot)\s*\(/;

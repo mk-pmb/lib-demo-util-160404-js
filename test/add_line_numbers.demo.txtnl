@@ -1,1 +1,1 @@
-# -*- coding: utf-8, tab-width: 2 -*- //= /^\s*1\s+#/
+-*- coding: utf-8, tab-width: 2 -*- //= /^\s*1\s+\W+ coding/
