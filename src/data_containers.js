@@ -18,7 +18,7 @@ EX.hasKeys = function (obj, howMany) {
 
 
 EX.arrayOrConcat = function (x) {
-  if (x instanceof Array) { return x; }
+  if (Array.isArray(x)) { return x; }
   return [x].concat(EX.arrSlc(arguments, 1));
 };
 
@@ -36,7 +36,7 @@ EX.sorted.map = function (obj, rule, iter) {
     iter = rule;
     rule = undefined;
   }
-  if (obj instanceof Array) { return EX.sorted(obj, rule).map(iter); }
+  if (Array.isArray(obj)) { return EX.sorted(obj, rule).map(iter); }
   return EX.sorted.keys(obj, rule).map(function (key) {
     return iter(key, obj[key], obj);
   });
@@ -51,14 +51,14 @@ EX.npmEnvPkgCfg = function (key, dflt) {
 
 EX.repeat = function (tmpl, howOften) {
   var rep, cnt;
-  rep = (tmpl instanceof Array ? [] : '');
+  rep = (Array.isArray(tmpl) ? [] : '');
   for (cnt = 0; cnt < howOften; cnt += 1) { rep = rep.concat(tmpl); }
   return rep;
 };
 
 
 EX.fancyStrLen = function fancyStrLen(x) {
-  if (x instanceof Array) { return x.map(fancyStrLen); }
+  if (Array.isArray(x)) { return x.map(fancyStrLen); }
   return String(x).length;
 };
 
@@ -78,7 +78,7 @@ EX.getProp.dflt = function (obj, dflt, key) {
 EX.getProp.these = function (obj, sel, opt) {
   if (sel === Object) { return obj; }
   if (sel === Array) { return obj.join(opt || ''); }
-  if (sel instanceof Array) { return sel.map(EX.getProp.from(obj)); }
+  if (Array.isArray(sel)) { return sel.map(EX.getProp.from(obj)); }
   return String(sel).replace(EX.getProp.slotsRgx, function (orig, num, key) {
     key = obj[num || key];
     if (key !== undefined) { return key; }
@@ -96,7 +96,7 @@ EX.getOrAddProp_dop = function (dflt, obj, prop) {
       dflt = dflt(null);
       break;
     }
-    if (dflt instanceof Function) { dflt = dflt(); }
+    if ((typeof dflt) === 'function') { dflt = dflt(); }
     obj[prop] = dflt;
   }
   return obj[prop];

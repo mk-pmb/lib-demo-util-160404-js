@@ -11,15 +11,15 @@ EX.ersatzRgxFmt = function ersatzRgxFmt(rgx, txt) {
     m = ersatzRgxFmt.prevMatch[rgx];
     return (m || (m === 0) || (m === '') ? m : false);
   }
-  if (txt instanceof Array) {
+  if (Array.isArray(txt)) {
     m = txt;
   } else {
     m = String(txt).match(rgx);
     ersatzRgxFmt.prevMatch = (m || false);
     if (!m) { return false; }
     if ((typeof m.index) === 'number') {
-      m['<'] = m.before = txt.substr(0, m.index);
-      m['>'] = m.after = txt.substr(m.index + m[0].length, txt.length);
+      m['<'] = m.before = txt.slice(0, m.index);
+      m['>'] = m.after = txt.slice(m.index + m[0].length);
     }
     txt = m;
   }
@@ -33,7 +33,9 @@ EX.ersatzRgxFmt = function ersatzRgxFmt(rgx, txt) {
       return (txt[grp] || '');
     });
   }
-  if ((txt instanceof Object) && (txt.length === 1)) { txt = txt[0]; }
+  if (((txt && typeof txt) === 'object') && (txt.length === 1)) {
+    txt = txt[0];
+  }
   ersatzRgxFmt.prevResult = m['='] = txt;
   return txt;
 };

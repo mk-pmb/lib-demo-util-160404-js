@@ -7,7 +7,7 @@ var EX = exports;
 
 EX.typeOf = function (x) {
   if (x === null) { return 'null'; }
-  if (x instanceof Object) {
+  if ((x && typeof x) === 'object') {
     switch (Object.getPrototypeOf(x)) {
     case Function.prototype:
       return typeof x;
@@ -21,7 +21,7 @@ EX.typeOf = function (x) {
 };
 EX.typeOf.cls = function (Cls) { return EX.typeOf(new Cls()); };
 EX.isType = function (x, t) {
-  if (t instanceof Function) { return (x instanceof t); }
+  if ((typeof t) === 'function') { return (x instanceof t); }
   return (EX.typeOf(x) === t);
 };
 EX.notType = function (x, t) { return !EX.isType(x, t); };

@@ -11,7 +11,7 @@ function humanReadablePath(p, opts) {
   if (opts.prefixAliases) {
     Object.keys(opts.prefixAliases).forEach(function (pfx) {
       if (p.substr(0, pfx.length) !== pfx) { return; }
-      return opts.prefixAliases[pfx] + p.substr(pfx.length, p.length);
+      return opts.prefixAliases[pfx] + p.slice(pfx.length);
     });
   }
   p = p.replace(/^\/[\S\s]+(\/(demo)\/)/, '…$1');

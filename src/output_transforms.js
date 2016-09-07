@@ -47,7 +47,7 @@ EX.applyOneMagic = function (text, magic, nextLines, sideEffects) {
   }
   func = EX['apply' + spell.replace(/\-?\b([a-z])/g,
     function (m, letter) { return m && letter.toUpperCase(); })];
-  if (func instanceof Function) {
+  if ((typeof func) === 'function') {
     text = func.apply(extras, [text].concat(magic.slice(1)));
     if (extras.sfx) { magic.sfx = extras.sfx; }
     return text;

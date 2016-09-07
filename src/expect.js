@@ -161,7 +161,7 @@ EX.chkError = function (exp) {
     exp.fail = uniEnt.notin + ' {error}';
     return;
   }
-  if (exp.want instanceof Function) {
+  if ((typeof exp.want) === 'function') {
     EX.chkIsin(exp, (err instanceof exp.want), 'error class ' +
       (exp.want.name || String(exp.want).split(/[\s\(]+/)[1] || '<anon>'));
     return;

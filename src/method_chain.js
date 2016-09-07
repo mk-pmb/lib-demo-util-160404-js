@@ -6,13 +6,13 @@ var CF, PT, funcUtil = require('./func_util.js');
 
 CF = function MethodChain(obj, todo, opts, then) {
   var chain = this, state;
-  if ((!then) && (opts instanceof Function)) {
+  if ((!then) && (typeof opts) === 'function') {
     then = opts;
     opts = null;
   }
   opts = (opts || false);
   chain.name = opts.name;
-  if (!(then instanceof Function)) {
+  if ((typeof then) !== 'function') {
     throw new Error('MethodChain requires "then" to be a function, not ' +
       String(then));
   }
@@ -33,7 +33,7 @@ PT.next = function methodChain_scheduleNextTask(err, newData) {
   if (newData !== undefined) { state.data = newData; }
   task = (todo.length > 0 ? todo.shift() : state.finalTask);
   task = funcUtil.bindIfMethodName(task, state.obj);
-  if (!(task instanceof Function)) {
+  if ((typeof task) !== 'function') {
     throw new Error('Expected a function as task, not ' + String(task));
   }
   clbk = methodChain_scheduleNextTask.bind(chain);
@@ -60,7 +60,7 @@ PT.data = function (newData) {
 
 
 PT.peek = function (func, args, postArgs) {
-  if (!(args instanceof Array)) { args = []; }
+  if (!Array.isArray(args)) { args = []; }
   if (postArgs !== false) { args = args.concat(this, (postArgs || [])); }
   func.apply(this.internalState(), args);
   return this;

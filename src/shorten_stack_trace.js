@@ -12,7 +12,7 @@ function shortenStackTrace(err, opts) {
           probably noode-internal modules. */);
   err = err.substr(err.indexOf(')\n') + 2, err.length
     /* ^- strip error message and first caller */);
-  if (opts.nicePaths instanceof Function) {
+  if ((typeof opts.nicePaths) === 'function') {
     err = err.replace(/\s+\(\S+\)(\n|$)/g, function (m) {
       m = String(m).replace(/^\s+\(/, '').split(/(:[:0-9]+|)(\))(\n*)$/);
       m[0] = opts.nicePaths(m[0]);

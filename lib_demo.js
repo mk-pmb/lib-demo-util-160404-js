@@ -25,7 +25,7 @@ CF = function LibDemoUtil160404(opts) {
   var D = this;
   if (PT.notType(this, CF)) { return new CF(opts); }
   if (!opts) { opts = false; }
-  if (opts instanceof Object) {
+  if ((opts && typeof opts) === 'object') {
     if ((typeof opts.filename) === 'string') { opts = { currentModule: opts }; }
   }
   D.currentModule = opts.currentModule;

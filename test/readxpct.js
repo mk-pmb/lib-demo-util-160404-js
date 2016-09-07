@@ -30,7 +30,7 @@ EX.parseSource = function scan(chainNext) {
 
 
 EX.report = function (err, data) {
-  if (err instanceof Function) {
+  if ((typeof err) === 'function') {
     data = err;
     err = null;
   }
@@ -44,7 +44,7 @@ EX.report = function (err, data) {
 
 EX.printAndQuit = function (chainNext) {
   var data = chainNext.methodChain.data();
-  if (data instanceof Array) { data = data.join('\n'); }
+  if (Array.isArray(data)) { data = data.join('\n'); }
   console.log(data);
 };
 
