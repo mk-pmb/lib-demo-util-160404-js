@@ -22,10 +22,12 @@ EX.runFromCLI = function () {
 
 EX.parseSource = function scan(chainNext) {
   var srcText = chainNext.methodChain.data(),
-    categs = (new OutputExpectationParser()).parse(srcText).categorize();
+    categs = (new OutputExpectationParser()).parse(srcText).categorize(),
+    err = categs.parseErrors;
   if (categs) { chainNext.methodChain.data(categs); }
-  return chainNext(categs.parseErrors.length === 0 ? null
-    : new Error('Errors while parsing source file'));
+  if (err.length === 0) { return chainNext(null); }
+  err = OutputExpectationParser.describeParseError.preview(err, 3);
+  return chainNext(new Error(err.join('\n    ')));
 };
 
 

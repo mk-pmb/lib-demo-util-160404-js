@@ -33,7 +33,7 @@ CF.trailingSimpleSpace = /[ \t\r]+$/;
 CF.sourceScaryStuff = /[\x00-\x06\x08\x0B-\x1A\x1C-\x1F\x7F-\x9F]+/;
 CF.simpleCommentLine = /^\s*(?:\/[\/\*]|#\s)(?![=…])/;
 CF.outputAnnot = /(?:^|\s)(?:\/{2}|#)=(0|i|…|)(?:\s+([`'"\/~])|\s*$)/;
-CF.outputAnnotEndQuot = /(\W)([a-z]*)$/;
+CF.outputAnnotEndQuot = /(\W)([a-z]*)(?:|\s+\/{2}\s[\S\s]*\S)$/;
 CF.outputEndQuotMissing = 'unterminated output expectation literal';
 CF.outputApiFn = /^\s*D\.(chap|annot)\s*\(/;
 CF.outputApiEndQuot = /["']\s*(?:(\+)$|\)(?:\s*;?|)(?:\s*\/{2}|))/;
@@ -171,6 +171,20 @@ PT.categorize = function (expList) {
 };
 
 
+CF.describeParseError = function descrErr(perr) {
+  if (Array.isArray(perr.parseErrors)) { perr = perr.parseErrors; }
+  if (Array.isArray(perr[0])) { return perr.map(descrErr); }
+  perr.lnum = perr.shift();
+  return '@' + perr.lnum + ': ' + perr.join(' | ');
+};
+CF.describeParseError.preview = function (perr, limit, intro) {
+  if (perr.length === 0) { return false; }
+  if (intro === undefined) { intro = 'Errors while parsing source file:'; }
+  intro = [intro].concat(CF.describeParseError(perr.slice(0, limit)));
+  limit = perr.length - limit;
+  if (limit > 0) { intro[intro.length] = '+' + limit + ' more'; }
+  return intro;
+};
 
 
 
