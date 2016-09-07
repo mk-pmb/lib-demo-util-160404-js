@@ -9,8 +9,19 @@ EX.oneLineJSONify = function (x) { return univeil.jsonify(x, null, -1); };
 
 
 EX.unslash = function (s) {
-  return String(s).replace(/\\[A-Za-z0-9]+/g,
-    function (m) { return JSON.parse('"' + m + '"'); });
+  return String(s).replace(/(\\+)([A-Za-z0-9]+)/g, function (m, b, e) {
+    try { return JSON.parse('"' + m + '"'); } catch (ignore) {}
+    if ((b.length % 2) === 0) { return m; }
+    var c = EX.unslash.chars[e[0]];
+    if (c) { return b.slice(0, Math.floor(b.length / 2)) + c + e.slice(1); }
+    return m;
+  });
+};
+EX.unslash.chars = {
+  'a': '\x07',
+  'b': '\x08',
+  'e': '\x1B',
+  'v': '\x0B',
 };
 
 
@@ -25,7 +36,7 @@ EX.stripQuot = function (s) {
     return s;
   }
   if (s[s.length - 1] !== s[0]) { return s; }
-  return s.substr(1, s.lenght - 2);
+  return s.slice(1, -1);
 };
 
 
