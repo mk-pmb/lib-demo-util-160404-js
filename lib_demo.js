@@ -43,7 +43,7 @@ PT.toString = function identifyLibDemoUtil(sub) {
   return '[LibDemoUtil160404' + (sub || '') + ']';
 };
 PT.chap = function (title) { console.log('\n=== ' + title + ' ==='); };
-PT.annot = function (hint) { console.log('# ' + hint); };
+PT.annot = function (hint) { console.log(hint ? '# ' + hint : ''); };
 
 PT.nodeModulesDir = pathLib.normalize(pathLib.join(module.filename,
   '..', '..', '..'));
@@ -58,8 +58,6 @@ Object.keys(mixins).forEach(function (destKey) {
 CF.furnish = function (D) {
   var tmp;
   D.result = 'Put results here';
-
-  D.catch = funcUtil.catch.bind(null, 'result', D);
 
   D.hrPath = function (p) { return hrPath(p, D.hrPath); };
   D.hrPath.prefixAliases = tmp = {};

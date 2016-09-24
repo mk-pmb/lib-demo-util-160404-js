@@ -89,28 +89,42 @@ PT.unquoteOutputAnnot = function (li) {
 
 
 PT.apiFuncContLn = function (lt, li) {
-  var oep = this;
-  if (!rx(CF.outputApiEndQuot, lt)) {
+  var oep = this, param = null, expectMore = false;
+  if (lt[0] === ')') {
+    param = '';
+  }
+  if ((param === null) && rx(CF.outputApiEndQuot, lt)) {
+    param = rx('<').replace(/^\s*['"]/, '');
+    expectMore = (rx(1) === '+');
+  }
+  if (param === null) {
     oep.modes.pop();
     lt = new Error(CF.outputEndQuotMissing + ' in ' + lt);
     return { srcLnIdx: li, data: lt };
   }
   li = oep.merge;
-  li.accum += rx('<').replace(/^\s*['"]/, '');
-  if (rx(1) !== '+') {
-    lt = {
-      chap: '\n=== \f ===',
-      annot: '# \f',
-    }[li.flag];
-    if (lt) {
-      delete li.flag;
-      li.data = lt.replace(/\f/g, li.accum);
-      delete li.accum;
-    } else {
-      li.data = new Error('unknown API: D.' + String(li.flag || '<none>'));
-    }
-    oep.modes.pop();
+  li.accum += param;
+  if (expectMore) { return; }
+  try {
+    li.data = oep.predictApiFuncOutput(li.flag, li.accum);
+    delete li.flag;
+    delete li.accum;
+  } catch (errPredict) {
+    li.data = errPredict;
   }
+  oep.modes.pop();
+};
+
+
+PT.predictApiFuncOutput = function (apiFunc, param) {
+  switch (apiFunc) {
+  case 'annot':
+    if (param) { return '# ' + param; }
+    return '';
+  case 'chap':
+    return '\n=== ' + param + ' ===';
+  }
+  throw new Error('unknown API: D.' + String(apiFunc || '<none>'));
 };
 
 

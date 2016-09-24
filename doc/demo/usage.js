@@ -2,11 +2,12 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var D = require('lib-demo-util-160404')(module), hi = 'hello';
+var D = require('lib-demo-util-160404')(module), tmp = {};
 D.expect.verbose = true;
 D.hrPath.fileAliases[module.filename] = '<usage demo>';
 
-D.result =      hi.substr(0, 4);
+tmp.hi = 'hello';
+D.result =      tmp.hi.substr(0, 4);
 D.expect('===', 'hell');    //= `+ (string) "hell"`
 D.expect('strlen', 4);      //= `+ (strlen) 4`
 D.expect('!==', 'help');    //= `+ (string) "hell" ≠ (string) "help"`
@@ -16,7 +17,7 @@ D.chap('Expect violation of an expectation:');
 D.expect('===', 'hel');
   //= `! (string) "hell"`
   //= '≠ (string) "hel"'
-  //= "☛ (<usage demo>:16:3)"
+  //= "☛ (<usage demo>:17:3)"
   //= ""
 D.expect('fails=', 1);        //= `+ expect.failCnt = 1`
 D.expect('reset_fails', 1);   //= `+ expect.failCnt = 1, reset.`
@@ -32,7 +33,7 @@ D.expect('strlen', D.result.length);    //= `+ (strlen) 2`
 
 
 D.chap('Data containers:');
-D.result = hi.split('');
+D.result = tmp.hi.split('');
 D.expect('like', ['h', 'e', 'l', 'l', 'o']);
   //= `+ (array) ["h", "e", "l", "l", "o"]`
 D.annot('^-- whether our human-readable description of the data looks the ' +
@@ -61,20 +62,42 @@ D.expect('type', 'string');
   //=0 `+ (string) "exp nums -> zero: 0 0 0 | 0 | 0 0" ∈ {string}`
 
 D.chap('RegExp matching:');
-D.annot('hello404');
+tmp.rgx = {
+  httpErrorTemplate: /^(\d+) ([\S\s]+)$|$:$2 (HTTP $1) <- $0/,
+};
+
 D.result = '404 Not Found';
-D.expect('regexp', /^\d+/);       //= `+ (string) … → "404"`
-D.expect('regexp', /\S+/g);       //= `+ (string) … → ["404", "Not", "Found"]`
-D.expect('regexp', /^(\d+) ([\S\s]+)$|$:$2 (HTTP $1) <- $0/);
+D.expect('regexp', /^\d+/);     //= `+ (string) … → "404"`
+D.expect('regexp', /\S+/g);     //= `+ (string) … → ["404", "Not", "Found"]`
+D.expect('regexp', tmp.rgx.httpErrorTemplate);
   //= `+ (string) … → "Not Found (HTTP 404) <- 404 Not Found"`
 
+
 D.chap('Synchronous runtime errors:');
-D.catch(function () { throw new Error(D.result); });
-D.expect('error', '404 Not Found');   //= `+ (error) 404 Not Found`
-D.expect('error', /^\d+/);      //= `+ (error) … → "404"`
-D.expect('error', /\S+/g);      //= `+ (error) … → ["404", "Not", "Found"]`
-D.expect('error', /^(\d+) ([\S\s]+)$|$:$2 (HTTP $1) <- $0/);
-  //= `+ (error) … → "Not Found (HTTP 404) <- 404 Not Found"`
+function failWhale(why) {
+  console.log('failWhale() gonna fail:', why);
+  throw new Error(why);
+}
+
+D.result = D.catch(failWhale)('502 Bad Gateway');
+  //= `failWhale() gonna fail: 502 Bad Gateway`
+D.expect('type', 'Error');    //= `+ (error) 502 Bad Gateway ∈ {Error}`
+D.expect('error', '502 Bad Gateway');   //= `+ (error) 502 Bad Gateway`
+D.expect('error', /^\d+/);    //= `+ (error) … → "502"`
+D.expect('error', /\S+/g);    //= `+ (error) … → ["502", "Bad", "Gateway"]`
+D.expect('error', tmp.rgx.httpErrorTemplate);
+  //= `+ (error) … → "Bad Gateway (HTTP 502) <- 502 Bad Gateway"`
+D.annot();
+
+D.result = D.err2str(failWhale)('410 Gone');
+    //= `failWhale() gonna fail: 410 Gone`
+D.expect('type', 'string');     //= `+ (string) "Error: 410 Gone" ∈ {string}`
+D.expect('===', 'Error: 410 Gone');   //= `+ (string) "Error: 410 Gone"`
+D.expect('regexp', /: \d+/);    //= `+ (string) … → ": 410"`
+D.expect('regexp', /\S+/g);     //= `+ (string) … → ["Error:", "410", "Gone"]`
+D.expect('regexp', tmp.rgx.httpErrorTemplate);
+  //= `+ (string) … → false`  // because there's "Error: " in front of "410"
+
 
 D.chap('Custom assertions:');
 D.result = 42;

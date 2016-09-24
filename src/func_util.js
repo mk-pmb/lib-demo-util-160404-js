@@ -31,17 +31,18 @@ EX.bindCall = function (obj, mthd, bindArgs) {
 };
 
 
-EX.catch = function (provoke) {
-  var args = arrSlc(arguments, 1), result;
-  if ((typeof provoke) === 'string') {
-    args.assignObj = args.shift();
-    args.assignKey = provoke;
-    provoke = args.shift();
-  }
-  try { result = provoke.apply(null, args); } catch (err) { result = err; }
-  if (args.assignObj) { args.assignObj[args.assignKey] = result; }
-  return result;
+EX.catch = function (dare, ctx, convert) {
+  if (ctx === undefined) { ctx = null; }
+  dare = EX.bindIfMethodName(dare, ctx);
+  return function catchAndReturnError() {
+    try {
+      return dare.apply(ctx, arguments);
+    } catch (err) {
+      return (convert ? convert(err) : err);
+    }
+  };
 };
+EX.err2str = function (dare, ctx) { return EX.catch(dare, ctx, String); };
 
 
 EX.bindFuncIfArray = function (func) {
@@ -88,6 +89,19 @@ EX.delayDelivery = function (storedArgs) {
     return cb.apply(null, storedArgs.concat(dynArgs));
   };
 };
+
+
+EX.arrayStripSharedPrefix = function (a, b) {
+  var shifted = 0;
+  while ((a.length > 0) && (b.length > 0) && (a[1] === b[1])) {
+    a.shift();
+    b.shift();
+    shifted += 1;
+  }
+  if (shifted) { a[0] = b[0] = '…[' + shifted + ']…'; }
+};
+
+
 
 
 
