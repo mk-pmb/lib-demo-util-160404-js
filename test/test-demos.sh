@@ -8,6 +8,7 @@ function main () {
   CFG[action]=test_demos
   CFG[diff-context]=2
   CFG[use-color]=+
+  CFG[mark-eol-wsp]=+
   CFG[interpreter:js]=nodejs
   CFG[interpreter:php]=php
   CFG[interpreter:pl]=perl
@@ -265,9 +266,14 @@ function check_demo () {
     s!(;[0-9;]+|)\a(.)!\1m\2\x1b[0\1m!
     s~$~\x1b[0m~
     '
+  local MARK_EOL_WSP='
+    s~(\s+)(\x1b\[0m|)$~\1\x1b[7m¶\x1b[0m~
+    '
   diff_add_old_lnums "$OUTPUT_DIFF" | lang_c grep -C "${CFG[diff-context]%\
     }" -Pe '^[\s0-9]*[\+\-]' | lang_c sed -re "$GRP_SEP
-    ${CFG[use-color]:+$COLORIZE_DIFF}"
+    ${CFG[use-color]:+$COLORIZE_DIFF}
+    ${CFG[mark-eol-wsp]:+$MARK_EOL_WSP}
+    "
   return 3
 }
 
