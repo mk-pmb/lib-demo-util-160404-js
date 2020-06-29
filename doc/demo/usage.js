@@ -33,7 +33,7 @@ D.expect('strlen', D.result.length);    //= `+ (strlen) 2`
 
 
 D.chap('Data containers:');
-D.result = tmp.hi.split('');
+D.result = Array.from(tmp.hi);
 D.expect('like', ['h', 'e', 'l', 'l', 'o']);
   //= `+ (array) ["h", "e", "l", "l", "o"]`
 D.annot('^-- whether our human-readable description of the data looks the ' +
