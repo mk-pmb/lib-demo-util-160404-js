@@ -7,7 +7,7 @@ var CF,  /* constructor function for this file's pseudo-class */
   dCtn = require('./data_containers.js'),
   expect = require('./expect.js'),
   stockRgx = require('./stock_regexps.js'),
-  rx = require('./shims.js').ersatzRgxFmt;
+  rx = require('./ersatz_rgxfmt.js');
 
 
 CF = function OutputExpectationParser() {

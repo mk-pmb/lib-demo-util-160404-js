@@ -1,5 +1,5 @@
 { "name": "lib-demo-util-160404",
-  "version": "0.1.14",
+  "version": "0.2.1",
   "description": "Helps me write testable documentation.",
   "keywords": [],
 
@@ -29,7 +29,14 @@
     "doc": "doc",
     "test": "test"
   },
-  "dependencies": { "univeil": "^0.1.6" },
+  "dependencies": {
+    "concise-value-preview-pmb": "^0.1.1",
+    "is-error": "^2.2.2",
+    "univeil": "^0.1.17"
+  },
+  "devDependencies": {
+    "jslint": "^0.12.1"
+  },
 
   "npm vs. BOM = Unexpected token": "-*- coding: UTF-8 -*-"
 }

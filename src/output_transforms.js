@@ -6,7 +6,7 @@ var EX = exports,
   dCtn = require('./data_containers.js'),
   typeChecks = require('./type_checks.js'),
   rgxEsc = require('./quotes.js').rgxEsc,
-  rgxFmt = require('./shims.js').ersatzRgxFmt;
+  rgxFmt = require('./ersatz_rgxfmt.js');
 
 
 EX.transformOutput = function (actual, magic) {

@@ -2,23 +2,9 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var EX = exports;
+var EX = exports, typeOf = require('concise-value-preview-pmb').typeOf;
 
-
-EX.typeOf = function (x) {
-  if (x === null) { return 'null'; }
-  if ((x && typeof x) === 'object') {
-    switch (Object.getPrototypeOf(x)) {
-    case Function.prototype:
-      return typeof x;
-    case Array.prototype:
-      return 'array';
-    }
-    return Object.prototype.toString.call(x
-      ).replace(/^\[object (\S+)\]$/, '$1');
-  }
-  return typeof x;
-};
+EX.typeOf = function extendedTypeOf(x) { return typeOf(x); };
 EX.typeOf.cls = function (Cls) { return EX.typeOf(new Cls()); };
 EX.isType = function (x, t) {
   if ((typeof t) === 'function') { return (x instanceof t); }

@@ -16,7 +16,9 @@ var CF, PT,
     funcUtil: funcUtil,
     logwrap: require('./src/logwrap.js'),
     quotes: require('./src/quotes.js'),
-    shims: require('./src/shims.js'),
+    shims: {
+      ersatzRgxFmt: require('./src/ersatz_rgxfmt.js'),
+    },
     stockRgx: { stockRgx: require('./src/stock_regexps.js') },
     typeChecks: require('./src/type_checks.js'),
   };

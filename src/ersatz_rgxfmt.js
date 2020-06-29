@@ -2,10 +2,7 @@
 /* -*- tab-width: 2 -*- */
 'use strict';
 
-var EX = exports;
-
-
-EX.ersatzRgxFmt = function ersatzRgxFmt(rgx, txt) {
+function ersatzRgxFmt(rgx, txt) {
   var m = ((arguments.length === 1) && (typeof rgx));
   if ((m === 'string') || (m === 'number')) {
     m = ersatzRgxFmt.prevMatch[rgx];
@@ -38,23 +35,7 @@ EX.ersatzRgxFmt = function ersatzRgxFmt(rgx, txt) {
   }
   ersatzRgxFmt.prevResult = m['='] = txt;
   return txt;
-};
-
-
-EX.ersatzEllip = function ersatzEllip(s, max, end) {
-  s = String(s);
-  if (1 > +(max || 0)) { max = 72; }
-  if (s.length <= max) { return s; }
-  if ((!end) && (end !== 0)) { end = 0.5; }
-  if (end > 0) {
-    if (end < 1) { end = Math.floor(end * max); }
-    max -= end;
-    end = s.substr(s.length - end, end);
-  } else {
-    end = '';
-  }
-  return (s.substr(0, max - 1) + '…' + end);
-};
+}
 
 
 
@@ -66,4 +47,5 @@ EX.ersatzEllip = function ersatzEllip(s, max, end) {
 
 
 
-/*scroll*/
+
+module.exports = ersatzRgxFmt;

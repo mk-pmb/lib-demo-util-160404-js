@@ -5,7 +5,8 @@
 
 var EX, uniEnt = require('./unicode-entities.js'),
   origDescribe = require('./describe.js'),
-  ersatzRgxFmt = require('./shims.js').ersatzRgxFmt,
+  ersatzRgxFmt = require('./ersatz_rgxfmt.js'),
+  isErr = require('is-error'),
   quotes = require('./quotes.js');
 
 
@@ -89,14 +90,14 @@ EX = function libDemo_expect(D, expCrit, expData, expWhere) {
     exp.okHint = uniEnt.heavyCheckMark + ' ' + exp.want;
     break;
   case false:
-    exp.fail = uniEnt.downwardsZigzagArrow + ' confuted: ' + exp.want;
+    exp.fail = uniEnt.downwardsZigzagArrow + ' disproven: ' + exp.want;
     break;
   case Error:
   case 'error':
     break;    // has been handled above
   case 'strlen':
     exp.rslt = quotes.oneLineJSONify(D.fancyStrLen(exp.rslt));
-    exp.rsltDescr = '(strlen) ' + exp.rslt;
+    exp.rsltDescr = 'strlen ' + exp.rslt;
     exp.want = quotes.oneLineJSONify(exp.want);
     exp.fail = (exp.rslt === exp.want ? false
       : uniEnt.ne + ' ' + exp.want);
@@ -157,7 +158,7 @@ EX.chkIsin = function (exp, isin, grp) {
 
 EX.chkError = function (exp) {
   var err = exp.rslt;
-  if (!(err instanceof Error)) {
+  if (!isErr(err)) {
     exp.fail = uniEnt.notin + ' {error}';
     return;
   }
